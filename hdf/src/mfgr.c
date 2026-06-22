@@ -274,14 +274,14 @@ GRIattrdestroynode(void *n)
 {
     at_info_t *at_ptr = (at_info_t *)n;
 
-if (at_ptr->name != NULL) {
-   char thisname[100];
-   strcpy(thisname, at_ptr->name);
+    if (at_ptr->name != NULL) {
+        char thisname[100];
+        strcpy(thisname, at_ptr->name);
 
-  fprintf(stderr, "thisname before at_ptr name = %s\n", thisname);
-  fprintf(stderr, "at_ptr->name = %s\n", at_ptr->name);
-  fprintf(stderr, "thisname after at_ptr name = %s\n", thisname);
-}
+        fprintf(stderr, "thisname before at_ptr name = %s\n", thisname);
+        fprintf(stderr, "at_ptr->name = %s\n", at_ptr->name);
+        fprintf(stderr, "thisname after at_ptr name = %s\n", thisname);
+    }
     free(at_ptr->name);
     free(at_ptr->data);
 
@@ -562,17 +562,16 @@ Decode_diminfo(uint8 *p, dim_info_t *dim_info)
 static int
 GRIget_image_list(int32 file_id, gr_info_t *gr_ptr)
 {
-    uint16     gr_ref;               /* ref # of the Vgroup containing new-style RIs */
-    int        curr_image;           /* current image gathering information about */
-    int        nimages;              /* total number of potential images */
-    int        noldimages;           /* count of old imgs returned by Get_oldimgs */
-    int32      nri, nci, nri8, nci8,
-               nii8, nvg;            /* number of RIs, CIs, RI8s, CI8s & II8s & Vgroups */
-    uint16     find_tag, find_ref;   /* storage for tag/ref pairs found */
-    int32      find_off, find_len;   /* storage for offset/lengths of tag/refs found */
-    int32      img_key;              /* Vgroup key of an image */
-    imginfo_t *img_info = NULL;      /* image info list */
-    int        i, j;                 /* local counting variable */
+    uint16     gr_ref;                          /* ref # of the Vgroup containing new-style RIs */
+    int        curr_image;                      /* current image gathering information about */
+    int        nimages;                         /* total number of potential images */
+    int        noldimages;                      /* count of old imgs returned by Get_oldimgs */
+    int32      nri, nci, nri8, nci8, nii8, nvg; /* number of RIs, CIs, RI8s, CI8s & II8s & Vgroups */
+    uint16     find_tag, find_ref;              /* storage for tag/ref pairs found */
+    int32      find_off, find_len;              /* storage for offset/lengths of tag/refs found */
+    int32      img_key;                         /* Vgroup key of an image */
+    imginfo_t *img_info = NULL;                 /* image info list */
+    int        i, j;                            /* local counting variable */
     int        ret_value = SUCCEED;
 
     HEclear();
@@ -619,9 +618,9 @@ GRIget_image_list(int32 file_id, gr_info_t *gr_ptr)
         gr_ptr->gr_ref = gr_ref; /* squirrel this away for later use */
         if ((gr_key = Vattach(file_id, (int32)gr_ref, "r")) != FAIL) {
             int32 nobjs = Vntagrefs(gr_key); /* The number of objects in the Vgroup */
-            int32  grp_tag, grp_ref;          /* a tag/ref in the Vgroup */
-            int32  img_tag, img_ref;          /* image tag/ref in the Vgroup */
-            char   textbuf[VGNAMELENMAX + 1]; /* buffer to store the name in */
+            int32 grp_tag, grp_ref;          /* a tag/ref in the Vgroup */
+            int32 img_tag, img_ref;          /* image tag/ref in the Vgroup */
+            char  textbuf[VGNAMELENMAX + 1]; /* buffer to store the name in */
 
             for (i = 0; i < nobjs; i++) {
                 if (Vgettagref(gr_key, i, &grp_tag, &grp_ref) == FAIL)
@@ -630,12 +629,11 @@ GRIget_image_list(int32 file_id, gr_info_t *gr_ptr)
                 switch (grp_tag) {
                     case DFTAG_VG: /* should be an image */
                         if ((img_key = Vattach(file_id, grp_ref, "r")) != FAIL) {
-                            char  *class = NULL;
+                            char *class     = NULL;
                             size_t buf_size = 0;
 
                             /* If unable to get class len, release vg, move on to next vg */
-                            if (Vgetclass(img_key, NULL, &buf_size) == FAIL)
-                            {
+                            if (Vgetclass(img_key, NULL, &buf_size) == FAIL) {
                                 Vdetach(img_key);
                                 continue;
                             }

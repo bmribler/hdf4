@@ -145,8 +145,8 @@ done:
 static char *
 hdf_get_vgclass(int32 vg_id)
 {
-    size_t buf_size = 0;
-    char *ret_value = NULL;
+    size_t buf_size  = 0;
+    char  *ret_value = NULL;
 
     /* Get length for buffer size first */
     if (Vgetclass(vg_id, NULL, &buf_size) == FAIL)
@@ -175,8 +175,8 @@ done:
 static char *
 hdf_get_vgname(int32 vg_id)
 {
-    size_t buf_size = 0;
-    char *ret_value = NULL;
+    size_t buf_size  = 0;
+    char  *ret_value = NULL;
 
     /* Get length for buffer size first */
     if (Vgetname(vg_id, NULL, &buf_size) == FAIL)
@@ -1222,14 +1222,14 @@ hdf_read_dims(XDR *xdrs, NC *handle, int32 vg)
 {
     int      id, count, i, found;
     int      sub_id;
-    char    *vgname = NULL;     /* name of a vgroup, used by new Vgetname */
-    char    *vgclass = NULL;    /* class of a vgroup, used by new Vgetclass */
-    size_t   buf_size = 0;      /* length of the name or class of a vgroup */
-    char     vsclass[H4_MAX_NC_CLASS] = ""; /* name of vdata */
+    char    *vgname                   = NULL; /* name of a vgroup, used by new Vgetname */
+    char    *vgclass                  = NULL; /* class of a vgroup, used by new Vgetclass */
+    size_t   buf_size                 = 0;    /* length of the name or class of a vgroup */
+    char     vsclass[H4_MAX_NC_CLASS] = "";   /* name of vdata */
     int32    dim_size;
     NC_dim **dimension = NULL;
-    int32    dimvg = -1;
-    int32    vs = -1;
+    int32    dimvg     = -1;
+    int32    vs        = -1;
     int      ret_value = SUCCEED;
 
     (void)xdrs;
@@ -1263,13 +1263,13 @@ hdf_read_dims(XDR *xdrs, NC *handle, int32 vg)
             if (!vgclass)
                 HGOTO_FAIL(FAIL);
 
- /*             if (FAIL == Vgetclass(dimvg, NULL, &buf_size))
-                HGOTO_FAIL(FAIL);
-            vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
-            CHECK_ALLOC(vgclass, "vgclass", "test_vglongnames");
-            if (FAIL == Vgetclass(dimvg, vgclass, &buf_size))
-                HGOTO_FAIL(FAIL);
- */ 
+            /*             if (FAIL == Vgetclass(dimvg, NULL, &buf_size))
+                           HGOTO_FAIL(FAIL);
+                       vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
+                       CHECK_ALLOC(vgclass, "vgclass", "test_vglongnames");
+                       if (FAIL == Vgetclass(dimvg, vgclass, &buf_size))
+                           HGOTO_FAIL(FAIL);
+            */
 
             /* Process if the vg is a dimension */
             if (!strcmp(vgclass, _HDF_DIMENSION) || !strcmp(vgclass, _HDF_UDIMENSION)) {
@@ -1279,25 +1279,25 @@ hdf_read_dims(XDR *xdrs, NC *handle, int32 vg)
                 is_dimval   = FALSE;
                 is_dimval01 = FALSE;
 
-   /*               vgname = hdf_get_vgname(dimvg);
-                if (vgname == NULL)
-                    HGOTO_FAIL(FAIL);
- */ 
+                /*               vgname = hdf_get_vgname(dimvg);
+                             if (vgname == NULL)
+                                 HGOTO_FAIL(FAIL);
+              */
 
-vgname = vgetvgname(dimvg);
-if (!vgname) {
+                vgname = vgetvgname(dimvg);
+                if (!vgname) {
                     HGOTO_FAIL(FAIL);
-}
+                }
 
- /* 
-                if (Vgetname(dimvg, NULL, &buf_size) == FAIL)
-                    HGOTO_FAIL(FAIL);
-                vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
-                if (!vgname)
-                    HGOTO_ERROR(DFE_NOSPACE, FAIL);
-                if (Vgetname(dimvg, vgname, &buf_size) == FAIL)
-                    HGOTO_FAIL(FAIL);
- */ 
+                /*
+                               if (Vgetname(dimvg, NULL, &buf_size) == FAIL)
+                                   HGOTO_FAIL(FAIL);
+                               vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
+                               if (!vgname)
+                                   HGOTO_ERROR(DFE_NOSPACE, FAIL);
+                               if (Vgetname(dimvg, vgname, &buf_size) == FAIL)
+                                   HGOTO_FAIL(FAIL);
+                */
 
                 /*
                  * Look through for a Vdata of class DIM_VALS01 and/or DIM_VALS
@@ -1609,8 +1609,8 @@ done:
 int
 hdf_read_vars(XDR *xdrs, NC *handle, int32 vg)
 {
-    NC_var      **variables      = NULL;
-    NC_var       *vp             = NULL;
+    NC_var      **variables = NULL;
+    NC_var       *vp        = NULL;
     int           ndims, *dims = NULL;
     uint8         ntstring[4];
     int           data_ref, is_rec_var, vg_size, count;
@@ -1627,10 +1627,10 @@ hdf_read_vars(XDR *xdrs, NC *handle, int32 vg)
     int           t, i;
     nc_type       type;
     int32         var, sub;
-    char         *varname = NULL;
-    char         *subname = NULL;
-    char         *varclass = NULL;
-    size_t        buf_size = 0;     /* Length of buffer for name or class */
+    char         *varname   = NULL;
+    char         *subname   = NULL;
+    char         *varclass  = NULL;
+    size_t        buf_size  = 0; /* Length of buffer for name or class */
     int           ret_value = SUCCEED;
 
     count = 0;
@@ -1704,9 +1704,9 @@ hdf_read_vars(XDR *xdrs, NC *handle, int32 vg)
                  * Loop through contents looking for dimensions
                  */
                 for (t = 0; t < n; t++) {
-                    char *dimclass = NULL;
-                    size_t dimclass_size = 0;
-                    char vsclass[H4_MAX_NC_CLASS]  = "";
+                    char  *dimclass                 = NULL;
+                    size_t dimclass_size            = 0;
+                    char   vsclass[H4_MAX_NC_CLASS] = "";
                     if (Vgettagref(var, t, &tag, &sub_id) == FAIL) {
                         HGOTO_FAIL(FAIL);
                     }
@@ -2222,10 +2222,10 @@ hdf_close(NC *handle)
     int       i;
     int       id, sub_id;
     int32     vg = -1, dimvg = -1;
-    int32     vs = -1;
+    int32     vs           = -1;
     size_t    vgclass_size = 0;
-    char     *vgclass = NULL;
-    int       ret_value = SUCCEED;
+    char     *vgclass      = NULL;
+    int       ret_value    = SUCCEED;
 
     /* loop through and detach from variable data VDatas */
     if (handle->vars) {

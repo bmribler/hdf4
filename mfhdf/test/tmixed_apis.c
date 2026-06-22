@@ -255,7 +255,7 @@ test_vdatavgroups()
     uint16     *refarray       = NULL;
     int         ii, status;
     char        vd_name[10];
-    uint16      name_len  = 0;
+    uint16      name_len          = 0;
     const char *check_vg_names[3] = {"Vgroup_1", "Vgroup_2", "Vgroup_3"};
     const char *check_vd_names[1] = {"Vdata_1"};
     int         num_errs          = 0; /* number of errors so far */
@@ -386,7 +386,7 @@ test_vdatavgroups()
     for (ii = 0; ii < num_vgroups; ii++) {
         int    statusint = SUCCEED;
         size_t buf_size  = 0;
-        char   *vg_name  = NULL;
+        char  *vg_name   = NULL;
 
         /* Open a vgroup */
         vgroup_id = Vattach(fid, refarray[ii], "r");

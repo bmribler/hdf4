@@ -615,7 +615,7 @@ read_vset_stuff(void)
     buf_size = Vgetname(vg1, buf_size + 1, vgname);
     CHECK(buf_size, FAIL, "Vgetname:vg1");
 
-fprintf(stderr, "Vgetname returns name = %s\n", vgname);
+    fprintf(stderr, "Vgetname returns name = %s\n", vgname);
     free(vgname);
 
     /* get the vgroup class' length, allocate the buffer, then get the vgroup class */
@@ -637,7 +637,6 @@ fprintf(stderr, "Vgetname returns name = %s\n", vgname);
     free(vgclass);
 
     /* get the vgroup name with insufficient buffer space */
-
 
     num    = 3;
     status = Vgettagrefs(vg1, tags, refs, 100);
@@ -1784,13 +1783,13 @@ test_emptyvdata(void)
 static void
 test_vglongnames(void)
 {
-    int32  fid;       /* File ID */
-    int32  vg1;       /* Vdata ID */
-    int32  ref;       /* Vdata ref */
-    size_t buf_size;  /* Length of a vgroup's name or class */
-    uint16 name_len;  /* Length of a vgroup's name or class for deprecated funcs */
+    int32  fid;      /* File ID */
+    int32  vg1;      /* Vdata ID */
+    int32  ref;      /* Vdata ref */
+    size_t buf_size; /* Length of a vgroup's name or class */
+    uint16 name_len; /* Length of a vgroup's name or class for deprecated funcs */
     char  *vgname, *vgclass;
-    int32  status;    /* Status values from routines */
+    int32  status;              /* Status values from routines */
     int    statusint = SUCCEED; /* status value from functions returning int */
 
     /* Open the HDF file. */
@@ -1873,25 +1872,26 @@ test_vglongnames(void)
 
     /* get the vgroup's class */
     vgclass = vgetvgclass(vg1);
-if (vgclass == NULL)
-  fprintf(stderr, "vgclass = NULL\n");
-if (!vgclass)
-  fprintf(stderr, "vgclass = %s\n", vgclass);
+    if (vgclass == NULL)
+        fprintf(stderr, "vgclass = NULL\n");
+    if (!vgclass)
+        fprintf(stderr, "vgclass = %s\n", vgclass);
     CHECK_VOID(vgclass, NULL, "Vgetclass");
-/*
-    statusint = Vgetclass(vg1, NULL, &buf_size);
-    CHECK_VOID(statusint, FAIL, "Vgetclass");
-    VERIFY_VOID(buf_size, strlen(VG_LONGNAME), "Vgetname");
+    /*
+        statusint = Vgetclass(vg1, NULL, &buf_size);
+        CHECK_VOID(statusint, FAIL, "Vgetclass");
+        VERIFY_VOID(buf_size, strlen(VG_LONGNAME), "Vgetname");
 
-    vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
-    CHECK_ALLOC(vgclass, "vgclass", "test_vglongnames");
+        vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
+        CHECK_ALLOC(vgclass, "vgclass", "test_vglongnames");
 
-    statusint = Vgetclass(vg1, vgclass, &buf_size);
-    CHECK_VOID(status, FAIL, "VSgetclass");
-*/
-  fprintf(stderr, "strlen(vgclass) = %d,  strlen(VG_LONGNAME) = %d\n", strlen(vgclass), strlen(VG_LONGNAME));
-     /* VERIFY_VOID(strlen(vgclass), strlen(VG_LONGCLASS), "Vgetclass");
- */ 
+        statusint = Vgetclass(vg1, vgclass, &buf_size);
+        CHECK_VOID(status, FAIL, "VSgetclass");
+    */
+    fprintf(stderr, "strlen(vgclass) = %d,  strlen(VG_LONGNAME) = %d\n", strlen(vgclass),
+            strlen(VG_LONGNAME));
+    /* VERIFY_VOID(strlen(vgclass), strlen(VG_LONGCLASS), "Vgetclass");
+     */
     if (strcmp(vgclass, VG_LONGCLASS)) {
         num_errs++;
         printf(">>> Got bogus Vgroup class : %s\n", vgclass);

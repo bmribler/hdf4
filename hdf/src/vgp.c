@@ -811,13 +811,13 @@ RETURNS
    returns TRUE if found.
 
 *******************************************************************************/
-char
-*vgetvgclass(int32 vkey)
+char *
+vgetvgclass(int32 vkey)
 {
     VGROUP *vg        = NULL;
-    size_t class_len = 0;
-    char *vgclass = NULL;
-    char *ret_value = NULL;
+    size_t  class_len = 0;
+    char   *vgclass   = NULL;
+    char   *ret_value = NULL;
 
     /* Check arguments */
     if (HAatom_group(vkey) != VGIDGROUP)
@@ -831,7 +831,7 @@ char
     class_len = (vg->vgclass != NULL) ? strlen(vg->vgclass) : 0;
 
     if (class_len > 0) {
-        vgclass = (char *) malloc(class_len + 1);
+        vgclass = (char *)malloc(class_len + 1);
         if (!vgclass)
             HGOTO_ERROR(DFE_NOSPACE, NULL);
 
@@ -862,13 +862,13 @@ RETURNS
    if successful, otherwise, returns NULL.
 
 *******************************************************************************/
-char
-*vgetvgname(int32 vkey)
+char *
+vgetvgname(int32 vkey)
 {
     VGROUP *vg        = NULL;
-    size_t name_len = 0;
-    char *vgname = NULL;
-    char *ret_value = NULL;
+    size_t  name_len  = 0;
+    char   *vgname    = NULL;
+    char   *ret_value = NULL;
 
     /* Check arguments */
     if (HAatom_group(vkey) != VGIDGROUP)
@@ -881,7 +881,7 @@ char
     /* Get the length of the vgroup name */
     name_len = (vg->vgname != NULL) ? strlen(vg->vgname) : 0;
 
-    vgname = (char *) malloc(name_len + 1);
+    vgname = (char *)malloc(name_len + 1);
     if (!vgname)
         HGOTO_ERROR(DFE_NOSPACE, NULL);
 
@@ -2659,7 +2659,7 @@ RETURNS
 ssize_t
 Vgetname(int32  vkey,     /* IN: vgroup key */
          size_t buf_size, /* IN: name buffer size */
-         char  *vgname    /* OUT: vgroup name */)
+         char  *vgname /* OUT: vgroup name */)
 {
     VGROUP *vg        = NULL;
     size_t  name_len  = 0;
@@ -2762,8 +2762,8 @@ RETURNS
 *******************************************************************************/
 ssize_t
 Vgetclass(int32  vkey,     /* IN: vgroup key */
-         size_t buf_size, /* IN: class buffer size */
-         char  *vgclass    /* OUT: vgroup class */)
+          size_t buf_size, /* IN: class buffer size */
+          char  *vgclass /* OUT: vgroup class */)
 {
     VGROUP *vg        = NULL;
     size_t  class_len = 0;
@@ -2861,10 +2861,10 @@ RETURNS
 
 *******************************************************************************/
 ssize_t
-Vinquire(int32   vkey,     /* IN: vgroup key */
-         int32  *nentries, /* OUT: number of entries in vgroup */
-         size_t  buf_size, /* IN: vgname size */
-         char   *vgname    /* OUT: vgroup name */)
+Vinquire(int32  vkey,     /* IN: vgroup key */
+         int32 *nentries, /* OUT: number of entries in vgroup */
+         size_t buf_size, /* IN: vgname size */
+         char  *vgname /* OUT: vgroup name */)
 {
     VGROUP *vg        = NULL;
     size_t  name_len  = 0;
@@ -3424,4 +3424,3 @@ Vgetvgroups(int32    id,       /* IN: file id or vgroup id */
 done:
     return ret_value;
 } /* Vgetvgroups */
-

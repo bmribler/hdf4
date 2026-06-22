@@ -30,10 +30,10 @@ static void test_vglongnames(void);
 static void
 test_vglongnames(void)
 {
-    int32  file_id;  /* File ID */
-    int32  vg1;      /* Vdata ID */
-    int32  ref;      /* Vdata ref */
-    uint16 name_len; /* Length of a vgroup's name or class name */
+    int32  file_id;      /* File ID */
+    int32  vg1;          /* Vdata ID */
+    int32  ref;          /* Vdata ref */
+    uint16 name_len;     /* Length of a vgroup's name or class name */
     size_t buf_size = 0; /* Size for name or class buffer */
     char  *vgname, *vgclass;
     int    is_internal;
@@ -204,9 +204,8 @@ test_undefined(void)
     int32  ref;         /* Vdata ref */
     int    is_internal; /* to test Vgisinternal */
     uint16 name_len;    /* Length of a vgroup's name or class name */
-    char  *vgname = NULL,
-          *vgclass = NULL;
-    int32  status;      /* Status values from routines */
+    char  *vgname = NULL, *vgclass = NULL;
+    int32  status;              /* Status values from routines */
     int    statusint = SUCCEED; /* Status values from functions returning int */
 
     /* Open the HDF file. */
