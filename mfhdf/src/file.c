@@ -303,7 +303,7 @@ NC_open(const char *path, int mode)
         /* if the failure was due to "too many open files," simply return */
         if (errno == EMFILE) {
             nc_serror("maximum number of open files allowed has been reached\"%s\"", path);
-            return -1;
+            goto error;
         }
 
         if ((mode & 0x0f) == NC_CLOBBER) {
@@ -313,7 +313,7 @@ NC_open(const char *path, int mode)
                 if (remove(path) != 0)
                     nc_serror("couldn't remove filename \"%s\"", path);
         }
-        return -1;
+        goto error;
     }
 
     (void)strncpy(handle->path, path, FILENAME_MAX);
@@ -322,6 +322,10 @@ NC_open(const char *path, int mode)
         _ncdf++;
     _curr_opened++;
     return cdfid;
+
+error:
+    return FAIL; /* just temporary, need to do some cleanup... */
+
 } /* NC_open */
 
 int

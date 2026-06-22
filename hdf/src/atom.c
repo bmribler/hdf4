@@ -211,6 +211,18 @@ HAdestroy_group(group_t grp /* IN: Group to destroy */
 
     /* Decrement the number of users of the atomic group */
     if ((--(grp_ptr->count)) == 0) {
+
+        /* Free all remaining atoms in the group */
+        for (unsigned i = 0; i < grp_ptr->hash_size; i++) {
+            atom_info_t *curr = grp_ptr->atom_list[i];
+            while (curr != NULL) {
+                atom_info_t *next = curr->next;
+                HAIrelease_atom_node(curr);
+                curr = next;
+            }
+        }
+
+        /* Clear cache entries for this group */
         for (unsigned u = 0; u < ATOM_CACHE_SIZE; u++) {
             if (ATOM_TO_GROUP(atom_id_cache[u]) == grp) {
                 atom_id_cache[u]  = -1;
@@ -574,6 +586,8 @@ HAIget_atom_node(void)
     else {
         if ((ret_value = (atom_info_t *)malloc(sizeof(atom_info_t))) == NULL)
             HGOTO_ERROR(DFE_NOSPACE, NULL);
+   /* fprintf(stderr, "HAIget_atom_node: ret_value = %x\n", ret_value);
+ */ 
     }
 
 done:
@@ -594,6 +608,8 @@ done:
 static void
 HAIrelease_atom_node(atom_info_t *atm)
 {
+   /* fprintf(stderr, "HAIrelease_atom_node: atm = %x\n", atm);
+ */ 
     /* Insert the atom at the beginning of the free list */
     atm->next      = atom_free_list;
     atom_free_list = atm;
@@ -615,6 +631,8 @@ HAIfree_atom_list(atom_info_t *info)
     while (curr != NULL) {
         next = curr->next;
         free(curr);
+ /*   fprintf(stderr, "HAIfree_atom_list: curr = %x\n", curr);
+ */ 
         curr = next;
     }
 }
@@ -639,6 +657,8 @@ HAshutdown(void)
     /* Free the atom groups */
     for (int i = 0; i < (int)MAXGROUP; i++) {
         if (atom_group_list[i] != NULL) {
+   /* fprintf(stderr, "HAshutdown: free %x\n", atom_group_list[i]->atom_list);
+ */ 
             free(atom_group_list[i]->atom_list);
             free(atom_group_list[i]);
         }

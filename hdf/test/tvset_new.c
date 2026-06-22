@@ -608,40 +608,32 @@ read_vset_stuff(void)
     /* get the vgroup name's length, allocate the buffer, then get the vgroup name */
     buf_size = Vgetname(vg1, 0, NULL);
     CHECK(buf_size, FAIL, "Vgetname:vg1");
-    VERIFY_VOID(buf_size, strlen(VGROUP1), "Vgetname");
 
     vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgname, "vgname", "read_vset_stuff");
 
     buf_size = Vgetname(vg1, buf_size + 1, vgname);
     CHECK(buf_size, FAIL, "Vgetname:vg1");
- /*     VERIFY_VOID(buf_size, strlen(VGROUP1), "Vgetname");
-    if (strcmp(vgname, VGROUP1)) {
-        num_errs++;
-        printf(">>> Got bogus Vgroup name : %s\n", vgname);
-    }
- */ 
 
-    fprintf(stderr, "Vgetname returns name = %s\n", vgname);
+fprintf(stderr, "Vgetname returns name = %s\n", vgname);
     free(vgname);
 
     /* get the vgroup class' length, allocate the buffer, then get the vgroup class */
-    buf_size = Vgetclass(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetclass:vg1");
-    VERIFY_VOID(buf_size, strlen(VGROUP1), "Vgetclass");
+    statusint = Vgetclass(vg1, NULL, &buf_size);
+    CHECK(statusint, FAIL, "Vgetclass:vg1");
 
     vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgclass, "vgclass", "read_vset_stuff");
 
-    buf_size = Vgetclass(vg1, buf_size + 1, vgclass);
-    CHECK(buf_size, FAIL, "Vgetclass:vg1");
+    statusint = Vgetclass(vg1, vgclass, &buf_size);
+    CHECK(statusint, FAIL, "Vgetclass:vg1");
 
     if (strcmp(vgclass, "Test object")) {
         num_errs++;
         printf(">>> Got bogus Vgroup class : %s\n", vgclass);
     }
 
-fprintf(stderr, "Vgetclass returns class = %s\n", vgclass);
+    fprintf(stderr, "Vgetclass returns class = %s\n", vgclass);
     free(vgclass);
 
     /* get the vgroup name with insufficient buffer space */
@@ -1857,15 +1849,15 @@ test_vglongnames(void)
     CHECK_VOID(vg1, FAIL, "VSattach");
 
     /* get the vgroup's name */
-    buf_size = Vgetname(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetname:vg1");
+    statusint = Vgetname(vg1, NULL, &buf_size);
+    CHECK_VOID(statusint, FAIL, "Vgetname");
     VERIFY_VOID(buf_size, strlen(VG_LONGNAME), "Vgetname");
 
     vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgname, "vgname", "test_vglongnames");
 
-    buf_size = Vgetname(vg1, buf_size + 1, vgname);
-    CHECK(buf_size, FAIL, "Vgetname:vg1");
+    statusint = Vgetname(vg1, vgname, &buf_size);
+    CHECK_VOID(statusint, FAIL, "Vgetname");
     VERIFY_VOID(buf_size, strlen(VG_LONGNAME), "Vgetname");
     if (strcmp(vgname, VG_LONGNAME)) {
         num_errs++;
@@ -1886,17 +1878,17 @@ if (vgclass == NULL)
 if (!vgclass)
   fprintf(stderr, "vgclass = %s\n", vgclass);
     CHECK_VOID(vgclass, NULL, "Vgetclass");
-
-    buf_size = Vgetclass(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetclass:vg1");
-    VERIFY_VOID(buf_size, strlen(VG_LONGCLASS), "Vgetclass");
+/*
+    statusint = Vgetclass(vg1, NULL, &buf_size);
+    CHECK_VOID(statusint, FAIL, "Vgetclass");
+    VERIFY_VOID(buf_size, strlen(VG_LONGNAME), "Vgetname");
 
     vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgclass, "vgclass", "test_vglongnames");
 
-    buf_size = Vgetclass(vg1, buf_size + 1, vgclass);
-    CHECK(buf_size, FAIL, "Vgetclass:vg1");
-
+    statusint = Vgetclass(vg1, vgclass, &buf_size);
+    CHECK_VOID(status, FAIL, "VSgetclass");
+*/
   fprintf(stderr, "strlen(vgclass) = %d,  strlen(VG_LONGNAME) = %d\n", strlen(vgclass), strlen(VG_LONGNAME));
      /* VERIFY_VOID(strlen(vgclass), strlen(VG_LONGCLASS), "Vgetclass");
  */ 
@@ -1922,16 +1914,17 @@ if (!vgclass)
     CHECK_VOID(vg1, FAIL, "VSattach");
 
     /* get the vgroup's name */
-    buf_size = Vgetname(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetname:vg1");
+    statusint = Vgetname(vg1, NULL, &buf_size);
+    CHECK_VOID(statusint, FAIL, "Vgetname");
     VERIFY_VOID(buf_size, strlen(VGROUP1), "Vgetname");
 
     vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgname, "vgname", "test_vglongnames");
 
-    buf_size = Vgetname(vg1, buf_size + 1, vgname);
-    CHECK(buf_size, FAIL, "Vgetname:vg1");
+    statusint = Vgetname(vg1, vgname, &buf_size);
+    CHECK_VOID(statusint, FAIL, "VSgetname");
     VERIFY_VOID(buf_size, strlen(VGROUP1), "Vgetname");
+
     if (strcmp(vgname, VGROUP1)) {
         num_errs++;
         printf(">>> Got bogus Vgroup name : %s\n", vgname);

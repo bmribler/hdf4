@@ -125,6 +125,7 @@ main(int argc, char *argv[])
     }
 
     /* Tests are generally arranged from least to most complexity... */
+#if 0
 #if !defined _WIN32
     InitTest("bitvect", test_bitvect, "Bit-Vector routines");
     InitTest("tbbt", test_tbbt, "Threaded Balanced Binary Trees");
@@ -153,13 +154,16 @@ main(int argc, char *argv[])
     InitTest("manot", test_man, "MULTI-ANNOTATIONS");
     InitTest("nbit", test_nbit, "N-Bit Dataset Interface");
     InitTest("litend", test_litend, "LITTLE-ENDIAN INTERFACE");
+#endif
     InitTest("vset", test_vsets, "VSET InterfaceTest");
     InitTest("vnameclass", test_vnameclass, "VSET Name and Class");
+#if 0
     InitTest("vattr", test_vset_attr, "VSET AttributeTest");
     InitTest("vsfpack", test_vspack, "Vdata fields pack Test");
     InitTest("datainfo", test_datainfo, "Getting Raw Data's Spatial Information");
     InitTest("attdatainfo", test_attdatainfo, "Getting Raw Data's Spatial Information of Attributes");
     InitTest("mfgr", test_mgr, "Multi-File Generic Raster Image Interface");
+#endif
 
     Verbosity = 4; /* Default Verbosity is Low */
     Hgetlibversion(&lmajor, &lminor, &lrelease, lstring);

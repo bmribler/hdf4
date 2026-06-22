@@ -253,9 +253,9 @@ test_vdatavgroups()
     float32     att1_values[2] = {2., 10.};
     char8       att2_values[]  = "Seconds";
     uint16     *refarray       = NULL;
-    uint16      name_len       = 0;
     int         ii, status;
-    char       *vg_name           = NULL, vd_name[10];
+    char        vd_name[10];
+    uint16      name_len  = 0;
     const char *check_vg_names[3] = {"Vgroup_1", "Vgroup_2", "Vgroup_3"};
     const char *check_vd_names[1] = {"Vdata_1"};
     int         num_errs          = 0; /* number of errors so far */
@@ -384,20 +384,26 @@ test_vdatavgroups()
 
     /* Verify the name of these user-created vgroups */
     for (ii = 0; ii < num_vgroups; ii++) {
+        int    statusint = SUCCEED;
+        size_t buf_size  = 0;
+        char   *vg_name  = NULL;
+
+        /* Open a vgroup */
         vgroup_id = Vattach(fid, refarray[ii], "r");
         CHECK(vgroup_id, FAIL, "Vattach");
 
-        status = Vgetnamelen(vgroup_id, &name_len);
-        CHECK(status, FAIL, "Vgetnamelen");
+        /* Get the vgroup's name */
+        statusint = Vgetname(vgroup_id, NULL, &buf_size);
+        CHECK(statusint, FAIL, "Vgetname");
 
-        vg_name = (char *)malloc((sizeof(char) * name_len) + 1);
+        vg_name = (char *)malloc(sizeof(char) * (buf_size + 1));
         CHECK_ALLOC(vg_name, "vg_name", "test_vdatavgroups");
 
-        status = Vgetname(vgroup_id, vg_name);
+        statusint = Vgetname(vgroup_id, vg_name, &buf_size);
         CHECK(status, FAIL, "Vgetname");
         VERIFY_CHAR(vg_name, check_vg_names[ii], "");
 
-        if (strncmp(vg_name, check_vg_names[ii], name_len) != 0)
+        if (strncmp(vg_name, check_vg_names[ii], buf_size) != 0)
             fprintf(stderr, "vg %d: name is %s, should be %s\n", ii, vg_name, check_vg_names[ii]);
 
         /* Release resource */

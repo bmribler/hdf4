@@ -274,14 +274,6 @@ GRIattrdestroynode(void *n)
 {
     at_info_t *at_ptr = (at_info_t *)n;
 
-if (at_ptr->name != NULL) {
-   char thisname[100];
-   strcpy(thisname, at_ptr->name);
-
-  fprintf(stderr, "thisname before at_ptr name = %s\n", thisname);
-  fprintf(stderr, "at_ptr->name = %s\n", at_ptr->name);
-  fprintf(stderr, "thisname after at_ptr name = %s\n", thisname);
-}
     free(at_ptr->name);
     free(at_ptr->data);
 
@@ -665,9 +657,9 @@ GRIget_image_list(int32 file_id, gr_info_t *gr_ptr)
                                     }     /* end for */
                                 }         /* end if */
                             }             /* end if */
-                            Vdetach(img_key);
-                            free(class);
                         }      /* end if */
+                        Vdetach(img_key);
+                        free(class);
                         break; /* case DFTAG_VG, an image */
 
                     case DFTAG_VH: /* must be a "global" attribute */
@@ -726,6 +718,7 @@ GRIget_image_list(int32 file_id, gr_info_t *gr_ptr)
                         /* increment the number of GR global attributes */
                         gr_ptr->gattr_count++;
 
+                        free(new_attr);
                     } /* end case DFTAG_VH, a global attribute */
                     break;
 

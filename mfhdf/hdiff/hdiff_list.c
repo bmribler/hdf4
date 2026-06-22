@@ -145,7 +145,7 @@ hdiff_list_vg(const char *fname, int32 file_id, int32 sd_id, /* SD interface ide
     int32  ref_vg;
     char  *vg_name  = NULL;
     char  *vg_class = NULL;
-    uint16 name_len;
+    size_t name_len;
     int32  i;
 
     /* initialize the V interface */
@@ -190,28 +190,32 @@ hdiff_list_vg(const char *fname, int32 file_id, int32 sd_id, /* SD interface ide
                 goto out;
             }
 
-            if (Vgetnamelen(vg_id, &name_len) == FAIL) {
+            /* Get vgroup's name */
+            if (Vgetname(vg_id, NULL, &name_len) == FAIL) {
                 printf("Error: Could not get name length for group with ref <%d>\n", ref);
                 goto out;
             }
-
-            free(vg_name);
             vg_name = (char *)malloc(sizeof(char) * (name_len + 1));
-
-            if (Vgetname(vg_id, vg_name) == FAIL) {
+            if (!vg_name) {
+                printf("Failed to allocate space for buffer\n");
+                goto out;
+            }
+            if (Vgetname(vg_id, vg_name, &name_len) == FAIL) {
                 printf("Error: Could not get name for group with ref <%d>\n", ref);
                 goto out;
             }
 
-            if (Vgetclassnamelen(vg_id, &name_len) == FAIL) {
-                printf("Error: Could not get classname length for group with ref <%d>\n", ref);
+            /* Get vgroup's class */
+            if (Vgetclass(vg_id, NULL, &name_len) == FAIL) {
+                printf("Error: Could not get class length for group with ref <%d>\n", ref);
                 goto out;
             }
-
-            free(vg_class);
             vg_class = (char *)malloc(sizeof(char) * (name_len + 1));
-
-            if (Vgetclass(vg_id, vg_class) == FAIL) {
+            if (!vg_class) {
+                printf("Failed to allocate space for buffer\n");
+                goto out;
+            }
+            if (Vgetclass(vg_id, vg_class, &name_len) == FAIL) {
                 printf("Error: Could not get class for group with ref <%d>\n", ref);
                 goto out;
             }
@@ -329,7 +333,7 @@ insert_vg(const char *fname, int32 file_id, int32 sd_id, /* SD interface identif
     char  *vg_class = NULL;
     char  *path     = NULL;
     int    i;
-    uint16 name_len;
+    size_t name_len;
 
     for (i = 0; i < npairs; i++) {
         tag = in_tags[i];
@@ -348,25 +352,40 @@ insert_vg(const char *fname, int32 file_id, int32 sd_id, /* SD interface identif
                 }
 
                 vg_id = Vattach(file_id, ref, "r");
-                if (Vgetnamelen(vg_id, &name_len) == FAIL) {
+                if (vg_id == FAIL) {
+                    printf("Error: Could not attach group with ref <%d>\n", ref);
+                    break;
+                }
+
+                /* Get vgroup's name */
+                if (Vgetname(vg_id, NULL, &name_len) == FAIL) {
                     printf("Error: Could not get name length for group with ref <%d>\n", ref);
                     break;
                 }
-
-                free(vg_name);
                 vg_name = (char *)malloc(sizeof(char) * (name_len + 1));
-
-                Vgetname(vg_id, vg_name);
-
-                if (Vgetclassnamelen(vg_id, &name_len) == FAIL) {
-                    printf("Error: Could not get classname length for group with ref <%d>\n", ref);
+                if (!vg_name) {
+                    printf("Failed to allocate space for buffer\n");
+                    break;
+                }
+                if (Vgetname(vg_id, vg_name, &name_len) == FAIL) {
+                    printf("Error: Could not get name for group with ref <%d>\n", ref);
                     break;
                 }
 
-                free(vg_class);
+                /* Get vgroup's class */
+                if (Vgetclass(vg_id, NULL, &name_len) == FAIL) {
+                    printf("Error: Could not get class length for group with ref <%d>\n", ref);
+                    break;
+                }
                 vg_class = (char *)malloc(sizeof(char) * (name_len + 1));
-
-                Vgetclass(vg_id, vg_class);
+                if (!vg_class) {
+                    printf("Failed to allocate space for buffer\n");
+                    break;
+                }
+                if (Vgetclass(vg_id, vg_class, &name_len) == FAIL) {
+                    printf("Error: Could not get class for group with ref <%d>\n", ref);
+                    break;
+                }
 
                 /* ignore reserved HDF groups/vdatas */
                 if (is_reserved(vg_class)) {

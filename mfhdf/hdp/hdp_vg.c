@@ -254,12 +254,14 @@ Vstr_ref(int32 file_id, char *searched_str,          /* vg's class name */
 
         if (name_len > 0) {
             if (is_name) {
-                if (FAIL == Vgetname(vg_id, name))
+                name = vgetvgname(vg_id);
+                if (!name)
                     ERROR_GOTO_2("in %s: Vgetclass failed for vgroup with ref#(%d)", "Vstr_ref",
                                  (int)*find_ref);
             }
             else {
-                if (FAIL == Vgetclass(vg_id, name))
+                name = vgetvgclass(vg_id);
+                if (!name)
                     ERROR_GOTO_2("in %s: Vgetclass failed for vgroup with ref#(%d)", "Vstr_ref",
                                  (int)*find_ref);
             }
@@ -440,7 +442,7 @@ get_VGandInfo(int32 *vg_id, int32 file_id, int32 vg_ref, const char *file_name, 
         /* If allocation fails, get_VGandInfo simply terminates hdp. */
         CHECK_ALLOC(*vgname, "*vgname", "get_VGandInfo");
 
-        status = Vinquire(*vg_id, n_entries, *vgname);
+        status = Vinquire(*vg_id, n_entries, *vgname, &name_len);
         if (FAIL == status) /* go to done and return a FAIL */
         {
             *n_entries = -1;
@@ -450,7 +452,7 @@ get_VGandInfo(int32 *vg_id, int32 file_id, int32 vg_ref, const char *file_name, 
     else {
         *vgname = (char *)malloc(sizeof(char) * (NONAME_LEN));
         strcpy(*vgname, "<Undefined>");
-        status = Vinquire(*vg_id, n_entries, NULL);
+        status = Vinquire(*vg_id, n_entries, NULL, &name_len);
         if (FAIL == status) /* go to done and return a FAIL */
         {
             *n_entries = -1;
@@ -464,20 +466,17 @@ get_VGandInfo(int32 *vg_id, int32 file_id, int32 vg_ref, const char *file_name, 
     {
         ERROR_GOTO_2("in %s: Vgetclassnamelen failed for vg ref=%d", "get_VGandInfo", (int)vg_ref);
     }
-    if (name_len > 0) {
-        *vgclass = (char *)malloc(sizeof(char) * (name_len + 1));
 
+    *vgclass = vgetvgclass(*vg_id);
+    if (!*vgclass) /* go to done and return a FAIL */
+    {
+        ERROR_GOTO_2("in %s: Vgetclass failed for vgroup ref#=%d", "get_VGandInfo", (int)vg_ref);
+    }
+    if ((*vgclass)[0] == '\0') {
+        *vgclass = (char *)realloc(*vgclass, NONAME_LEN);
         /* If allocation fails, get_VGandInfo simply terminates hdp. */
         CHECK_ALLOC(*vgclass, "*vgclass", "get_VGandInfo");
 
-        status_32 = Vgetclass(*vg_id, *vgclass);
-        if (FAIL == status_32) /* go to done and return a FAIL */
-        {
-            ERROR_GOTO_2("in %s: Vgetclass failed for vgroup ref#=%d", "get_VGandInfo", (int)vg_ref);
-        }
-    }
-    else {
-        *vgclass = (char *)malloc(sizeof(char) * (NONAME_LEN));
         strcpy(*vgclass, "<Undefined>");
     }
 
