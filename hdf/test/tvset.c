@@ -566,24 +566,26 @@ read_vset_stuff(void)
     }
 
     /* Get the vgroup's name */
-    buf_size = Vgetname(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetname");
+    status = Vgetname(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetname");
 
     vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgname, "vgname", "read_vset_stuff");
 
-    buf_size = Vgetname(vg1, buf_size + 1, vgname);
-    CHECK(buf_size, FAIL, "Vgetname:vg1");
+    buf_size++;
+    status = Vgetname(vg1, vgname, &buf_size);
+    CHECK(status, FAIL, "Vgetname:vg1");
 
     /* Get the vgroup's class */
-    buf_size = Vgetclass(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetclass");
+    status = Vgetclass(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetclass");
 
     vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgclass, "vgclass", "read_vset_stuff");
 
-    buf_size = Vgetclass(vg1, buf_size + 1, vgclass);
-    CHECK(buf_size, FAIL, "Vgetclass:vg1");
+    buf_size++;
+    status = Vgetclass(vg1, vgclass, &buf_size);
+    CHECK(status, FAIL, "Vgetclass:vg1");
 
     if (strcmp(vgname, SECONDVG)) {
         num_errs++;
@@ -1862,14 +1864,15 @@ test_vglongnames(void)
     CHECK(vg1, FAIL, "VSattach");
 
     /* get the vgroup's name */
-    buf_size = Vgetname(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetname");
+    status = Vgetname(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetname");
 
     vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgname, "vgname", "test_vglongnames");
 
-    buf_size = Vgetname(vg1, buf_size + 1, vgname);
-    CHECK(buf_size, FAIL, "Vgetname");
+    buf_size++;
+    status = Vgetname(vg1, vgname, &buf_size);
+    CHECK(status, FAIL, "Vgetname");
 
     if (strcmp(vgname, VG_LONGNAME)) {
         num_errs++;
@@ -1879,14 +1882,15 @@ test_vglongnames(void)
     HDfreenclear(vgname);
 
     /* get the vgroup's class */
-    buf_size = Vgetclass(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetclass");
+    status = Vgetclass(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetclass");
 
     vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgclass, "vgclass", "test_vglongnames");
 
-    buf_size = Vgetclass(vg1, buf_size + 1, vgclass);
-    CHECK(buf_size, FAIL, "Vgetclass");
+    buf_size++;
+    status = Vgetclass(vg1, vgclass, &buf_size);
+    CHECK(status, FAIL, "Vgetclass");
 
     if (strcmp(vgclass, VG_LONGCLASS)) {
         num_errs++;
@@ -1907,14 +1911,15 @@ test_vglongnames(void)
     CHECK(vg1, FAIL, "VSattach");
 
     /* get the vgroup's name */
-    buf_size = Vgetname(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetname");
+    status = Vgetname(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetname");
 
     vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgname, "vgname", "test_vglongnames");
 
-    buf_size = Vgetname(vg1, buf_size + 1, vgname);
-    CHECK(buf_size, FAIL, "Vgetname");
+    buf_size++;
+    status = Vgetname(vg1, vgname, &buf_size);
+    CHECK(status, FAIL, "Vgetname");
 
     if (strcmp(vgname, VGROUP1)) {
         num_errs++;
@@ -1924,14 +1929,15 @@ test_vglongnames(void)
     HDfreenclear(vgname);
 
     /* get the vgroup's class */
-    buf_size = Vgetclass(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetclass");
+    status = Vgetclass(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetclass");
 
     vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgclass, "vgclass", "test_vglongnames");
 
-    buf_size = Vgetclass(vg1, buf_size + 1, vgclass);
-    CHECK(buf_size, FAIL, "Vgetclass");
+    buf_size++;
+    status = Vgetclass(vg1, vgclass, &buf_size);
+    CHECK(status, FAIL, "Vgetclass");
 
     if (strcmp(vgclass, VG_LONGCLASS)) {
         num_errs++;

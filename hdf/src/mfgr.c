@@ -155,6 +155,7 @@ int GRIil_convert(const void * inbuf,gr_interlace_t inil,void * outbuf,
  */
 
 #include "hdf_priv.h"
+#include "vg_priv.h"
 #include "mfgr_priv.h"
 
 #ifdef H4_HAVE_LIBSZ /* we have the library */
@@ -610,9 +611,9 @@ GRIget_image_list(int32 file_id, gr_info_t *gr_ptr)
         gr_ptr->gr_ref = gr_ref; /* squirrel this away for later use */
         if ((gr_key = Vattach(file_id, (int32)gr_ref, "r")) != FAIL) {
             int32 nobjs = Vntagrefs(gr_key); /* The number of objects in the Vgroup */
-            int32 grp_tag, grp_ref;          /* a tag/ref in the Vgroup */
-            int32 img_tag, img_ref;          /* image tag/ref in the Vgroup */
-            char  textbuf[VGNAMELENMAX + 1]; /* buffer to store the name in */
+            int32  grp_tag, grp_ref;          /* a tag/ref in the Vgroup */
+            int32  img_tag, img_ref;          /* image tag/ref in the Vgroup */
+            char   textbuf[VGNAMELENMAX + 1]; /* buffer to store the name in */
 
             for (i = 0; i < nobjs; i++) {
                 if (Vgettagref(gr_key, i, &grp_tag, &grp_ref) == FAIL)
@@ -621,11 +622,11 @@ GRIget_image_list(int32 file_id, gr_info_t *gr_ptr)
                 switch (grp_tag) {
                     case DFTAG_VG: /* should be an image */
                         if ((img_key = Vattach(file_id, grp_ref, "r")) != FAIL) {
-                            char *class        = NULL;
-                            ptrdiff_t buf_size = 0; /* portable substitute for POSIX ssize_t */
+                            char  *class    = NULL;
+                            size_t buf_size = 0;
 
                             /* If unable to get class len, release vg, move on to next vg */
-                            if ((buf_size = Vgetclass(img_key, 0, NULL)) == FAIL) {
+                            if (Vgetclass(img_key, NULL, &buf_size) == FAIL) {
                                 Vdetach(img_key);
                                 continue;
                             }
@@ -633,7 +634,8 @@ GRIget_image_list(int32 file_id, gr_info_t *gr_ptr)
                                 Vdetach(img_key);
                                 HGOTO_ERROR(DFE_NOSPACE, FAIL);
                             }
-                            if (Vgetclass(img_key, (size_t)buf_size + 1, class) != FAIL) {
+                            buf_size++; /* for null-terminator */
+                            if (Vgetclass(img_key, class, &buf_size) != FAIL) {
                                 if (!strcmp(class, RI_NAME)) { /* it is an image, get the image's tag/ref */
                                     for (j = 0; j < Vntagrefs(img_key); j++) {
                                         if (Vgettagref(img_key, j, &img_tag, &img_ref) == FAIL) {
@@ -847,7 +849,6 @@ GRIget_image_list(int32 file_id, gr_info_t *gr_ptr)
                     uint8      GRtbuf[64];                /* local buffer for reading RIG info */
 
                     if ((img_key = Vattach(file_id, (int32)img_info[i].grp_ref, "r")) != FAIL) {
-                        ptrdiff_t buf_size;
                         if ((new_image = (ri_info_t *)malloc(sizeof(ri_info_t))) == NULL) {
                             free(img_info); /* free offsets */
                             Hclose(file_id);
@@ -858,12 +859,11 @@ GRIget_image_list(int32 file_id, gr_info_t *gr_ptr)
                         memset(new_image, 0, sizeof(ri_info_t));
 
                         /* Get the name of the image */
-                        if ((buf_size = Vgetname(img_key, 0, NULL)) == FAIL)
-                            buf_size = 20; /* for "Raster Image #%d" */
-                        if ((new_image->name = (char *)malloc(buf_size + 1)) == NULL)
-                            HGOTO_ERROR(DFE_NOSPACE, FAIL);
-                        if (Vgetname(img_key, (size_t)buf_size + 1, new_image->name) == FAIL)
+                        if ((new_image->name = vgetvgname(img_key)) == NULL) {
+                            if ((new_image->name = (char *)malloc(20)) == NULL)
+                                HGOTO_ERROR(DFE_NOSPACE, FAIL);
                             sprintf(new_image->name, "Raster Image #%d", (int)i);
+                        }
 
                         /* Initialize the local attribute tree */
                         new_image->lattr_count = 0;
@@ -1820,6 +1820,7 @@ GRIupdateRI(int32 hdf_file_id, ri_info_t *img_ptr)
         /* due to uint16 type of ref, check return value of VQueryref
              and assign it to ri_ref only when it's not FAIL */
         int32 temp_ref;
+
         temp_ref = VQueryref(GroupID);
         if (temp_ref == FAIL)
             HGOTO_ERROR(DFE_BADREF, FAIL);
@@ -1989,6 +1990,7 @@ GRend(int32 grid)
         /* Check if the GR group exists, and create it if not */
         if (gr_ptr->gr_ref == DFREF_WILDCARD) {
             int32 temp_ref;
+
             if ((GroupID = Vattach(gr_ptr->hdf_file_id, -1, "w")) == FAIL)
                 HGOTO_ERROR(DFE_CANTATTACH, FAIL);
 

@@ -352,7 +352,8 @@ DESCRIPTION
    Will allocate a new vfile_t, then proceed to load vg instances.
 
 RETURNS
-   Returns SUCCEED if ok, FAIL if error or no more file slots available.
+   RETURNS FAIL if error or no more file slots available.
+   RETURNS SUCCEED if ok.
 
 *******************************************************************************/
 static int
@@ -512,7 +513,6 @@ DESCRIPTION
    *** Only called by Vfinish() ***
 
 RETURNS
-    SUCCEED / FAIL
 
 *******************************************************************************/
 static int
@@ -564,7 +564,6 @@ DESCRIPTION
    *** Only called by B-tree routines, should _not_ be called externally ***
 
 RETURNS
-    Negative if k1 < k2, zero if equal, positive if k1 > k2.
 
 *******************************************************************************/
 int
@@ -625,8 +624,7 @@ vdestroynode(void *n /* IN: node to free */)
 
             /* Free the old-style attr list and reset associated fields */
             if (vg->old_alist != NULL) {
-                free(vg->old_alist);
-                vg->old_alist = NULL;
+                HDfreenclear(vg->old_alist);
                 vg->noldattrs = 0;
             }
 
@@ -739,7 +737,8 @@ DESCRIPTION
    where vgid is found.
 
 RETURNS
-   Returns vginstance_t pointer if found, and NULL if error or not found.
+   RETURNS NULL if error or not found.
+   RETURNS vginstance_t pointer if ok.
 
 *******************************************************************************/
 vginstance_t *
@@ -781,7 +780,8 @@ DESCRIPTION
    Tests if a vgroup with id vgid is in the file's vgtab.
 
 RETURNS
-   Returns TRUE if found, otherwise FAIL.
+   returns FAIL if not found,
+   returns TRUE if found.
 
 *******************************************************************************/
 int32
@@ -803,14 +803,11 @@ NAME
    vgetvgclass
 
 DESCRIPTION
-   A utility function that returns the class of a vgroup, allocating the buffer
-   internally so the caller does not need to know the length of the class in
-   advance.  Intended for use within the library and tools only; the caller is
-   responsible for freeing the returned buffer.
+   Is a utility function for common code that get the class of a vgroup.
 
 RETURNS
-   If successful, returns the vgroup's class, which can be an empty string if
-   there is no class. Otherwise, returns NULL.
+   returns FAIL if not found,
+   returns TRUE if found.
 
 *******************************************************************************/
 char *
@@ -829,13 +826,14 @@ vgetvgclass(int32 vkey)
     if ((vg = VIGet_vgdesc(vkey)) == NULL)
         HGOTO_ERROR(DFE_BADPTR, NULL);
 
-    /* Get length of vgroup class and allocate memory for it */
+    /* Get the length of the vgroup class */
     class_len = (vg->vgclass != NULL) ? strlen(vg->vgclass) : 0;
-    vgclass   = (char *)malloc(class_len + 1);
+
+    vgclass = (char *)malloc(class_len + 1);
     if (!vgclass)
         HGOTO_ERROR(DFE_NOSPACE, NULL);
 
-    /* Copy vgroup name or set it null-terminated */
+    /* Copy vgroup class or set it null-terminated */
     if (class_len > 0)
         strcpy(vgclass, vg->vgclass);
     else
@@ -860,8 +858,8 @@ DESCRIPTION
    responsible for freeing the returned buffer.
 
 RETURNS
-   If successful, returns the vgroup's name, which can be an empty string if
-   there is no name. Otherwise, returns NULL.
+   Returns the vgroup's name, which can be an empty string if there is no name,
+   if successful, otherwise, returns NULL.
 
 *******************************************************************************/
 char *
@@ -880,9 +878,10 @@ vgetvgname(int32 vkey)
     if ((vg = VIGet_vgdesc(vkey)) == NULL)
         HGOTO_ERROR(DFE_BADPTR, NULL);
 
-    /* Get length of vgroup name and allocate memory for it */
+    /* Get the length of the vgroup name */
     name_len = (vg->vgname != NULL) ? strlen(vg->vgname) : 0;
-    vgname   = (char *)malloc(name_len + 1);
+
+    vgname = (char *)malloc(name_len + 1);
     if (!vgname)
         HGOTO_ERROR(DFE_NOSPACE, NULL);
 
@@ -1429,8 +1428,7 @@ Vdetach(int32 vkey /* IN: vgroup key */)
 
     /* Free the old-style attribute list and reset associated fields */
     if (vg->old_alist != NULL) {
-        free(vg->old_alist);
-        vg->old_alist = NULL;
+        HDfreenclear(vg->old_alist);
         vg->noldattrs = 0;
     }
 
@@ -2548,32 +2546,33 @@ NAME
    Vgetname - Retrieves the vgroup's name
 
 DESCRIPTION
-    Retrieves the name of a vgroup. When vgname is NULL or buf_size is 0,
-    the function returns the length of the vgroup name without copying.
-    Otherwise, up to buf_size-1 characters are copied into vgname followed
-    by a null terminator. If the name is longer than buf_size-1 characters,
-    it will be truncated. The actual name length is returned on success,
-    or FAIL on failure.
+    This function retrieves the name of a vgroup.  buf_size is an IN/OUT
+    parameter.  When vgname is NULL or *buf_size is 0, the function returns
+    the length of the vgroup name in *buf_size without copying.  Otherwise,
+    up to *buf_size-1 characters are stored in vgname followed by a null
+    terminator, and the actual name length is returned in *buf_size.  If the
+    name of the vgroup is longer than *buf_size-1, the string will be truncated
+    and the null terminator is stored in the last position of the buffer.
+    buf_size must not be NULL.
 
 RETURNS
-   Length of vgroup name / FAIL
+   SUCCEED / FAIL
 
 *******************************************************************************/
-/* ptrdiff_t used here as a portable, standard-C substitute for POSIX ssize_t */
-ptrdiff_t
-Vgetname(int32  vkey,     /* IN: vgroup key */
-         size_t buf_size, /* IN: name buffer size */
-         char  *vgname /* OUT: vgroup name */)
+int
+Vgetname(int32   vkey,     /* IN: vgroup key */
+         char   *vgname,   /* OUT: vgroup name */
+         size_t *buf_size /* IN/OUT: name buffer size */)
 {
-    VGROUP   *vg        = NULL;
-    size_t    name_len  = 0;
-    ptrdiff_t ret_value = SUCCEED;
+    VGROUP *vg        = NULL;
+    size_t  name_len  = 0;
+    int     ret_value = SUCCEED;
 
     /* Clear error stack */
     HEclear();
 
     /* Check arguments */
-    if (HAatom_group(vkey) != VGIDGROUP)
+    if (HAatom_group(vkey) != VGIDGROUP || buf_size == NULL)
         HGOTO_ERROR(DFE_ARGS, FAIL);
 
     /* Get the vgroup struct for access */
@@ -2583,19 +2582,22 @@ Vgetname(int32  vkey,     /* IN: vgroup key */
     /* Get the length of the vgroup name */
     name_len = (vg->vgname != NULL) ? strlen(vg->vgname) : 0;
 
-    /* If vgname is NULL or buf_size is 0, return the length of the name */
-    if (vgname == NULL || buf_size == 0)
-        HGOTO_DONE((ptrdiff_t)name_len);
+    /* If vgname is NULL or *buf_size is 0, return the length of the name */
+    if (vgname == NULL || *buf_size == 0) {
+        *buf_size = name_len;
+        HGOTO_DONE(ret_value);
+    }
 
     /* Copy vgroup name, truncating if necessary */
     if (vg->vgname != NULL) {
-        strncpy(vgname, vg->vgname, buf_size - 1);
-        vgname[buf_size - 1] = '\0';
+        strncpy(vgname, vg->vgname, *buf_size - 1);
+        vgname[*buf_size - 1] = '\0';
     }
     else
         vgname[0] = '\0';
 
-    ret_value = (ptrdiff_t)name_len;
+    /* Return the actual name length */
+    *buf_size = name_len;
 
 done:
     return ret_value;
@@ -2606,31 +2608,33 @@ NAME
    Vgetclass - Retrieves the vgroup's class
 
 DESCRIPTION
-    Retrieves the class of a vgroup. When vgclass is NULL or buf_size is 0,
-    the function returns the length of the class without copying. Otherwise,
-    up to buf_size-1 characters are copied into vgclass followed by a null
-    terminator. If the class name is longer than buf_size-1 characters, it
-    will be truncated. The actual class name length is returned on success,
-    or FAIL on failure.
+    This function retrieves the class of a vgroup.  buf_size is an IN/OUT
+    parameter.  When vgclass is NULL or *buf_size is 0, the function returns
+    the length of the vgroup class in *buf_size without copying.  Otherwise,
+    up to *buf_size-1 characters are stored in vgclass followed by a null
+    terminator, and the actual class length is returned in *buf_size.  If the
+    class of the vgroup is longer than *buf_size-1, the string will be truncated
+    and the null terminator is stored in the last position of the buffer.
+    buf_size must not be NULL.
 
 RETURNS
-   Length of the class's name / FAIL
+   SUCCEED / FAIL
 
 *******************************************************************************/
-ptrdiff_t
-Vgetclass(int32  vkey,     /* IN: vgroup key */
-          size_t buf_size, /* IN: class buffer size */
-          char  *vgclass /* OUT: vgroup class */)
+int
+Vgetclass(int32   vkey,     /* IN: vgroup key */
+          char   *vgclass,  /* OUT: vgroup class buffer */
+          size_t *buf_size /* IN/OUT: class buffer size */)
 {
-    VGROUP   *vg        = NULL;
-    size_t    class_len = 0;
-    ptrdiff_t ret_value = SUCCEED;
+    VGROUP *vg        = NULL;
+    size_t  class_len = 0;
+    int     ret_value = SUCCEED;
 
     /* Clear error stack */
     HEclear();
 
     /* Check arguments */
-    if (HAatom_group(vkey) != VGIDGROUP)
+    if (HAatom_group(vkey) != VGIDGROUP || buf_size == NULL)
         HGOTO_ERROR(DFE_ARGS, FAIL);
 
     /* Get the vgroup struct for access */
@@ -2640,19 +2644,22 @@ Vgetclass(int32  vkey,     /* IN: vgroup key */
     /* Get the length of the vgroup class */
     class_len = (vg->vgclass != NULL) ? strlen(vg->vgclass) : 0;
 
-    /* If vgclass is NULL or buf_size is 0, return the length of the class */
-    if (vgclass == NULL || buf_size == 0)
-        HGOTO_DONE((ptrdiff_t)class_len);
+    /* If vgclass is NULL or *buf_size is 0, return the length of the class */
+    if (vgclass == NULL || *buf_size == 0) {
+        *buf_size = class_len;
+        HGOTO_DONE(ret_value);
+    }
 
     /* Copy vgroup class, truncating if necessary */
     if (vg->vgclass != NULL) {
-        strncpy(vgclass, vg->vgclass, buf_size - 1);
-        vgclass[buf_size - 1] = '\0';
+        strncpy(vgclass, vg->vgclass, *buf_size - 1);
+        vgclass[*buf_size - 1] = '\0';
     }
     else
         vgclass[0] = '\0';
 
-    ret_value = (ptrdiff_t)class_len;
+    /* Return the actual class length */
+    *buf_size = class_len;
 
 done:
     return ret_value;
@@ -2660,36 +2667,37 @@ done:
 
 /*******************************************************************************
 NAME
-   Vinquire - General inquiry routine for vgroup
+   Vinquire
 
 DESCRIPTION
-   Returns the length of the vgroup name on success, or FAIL on failure.
-   If vgname is NULL or buf_size is 0, only the name length is returned without
-   copying.
-
-   Output parameters:
-      nentries - no of entries in the vgroup
-      vgname  - the vgroup's name
+   General inquiry routine for VGROUP.  buf_size is an IN/OUT parameter.
+   When vgname is NULL or *buf_size is 0, the function returns the length
+   of the vgroup name in *buf_size without copying.  Otherwise, up to
+   *buf_size-1 characters are stored in vgname followed by a null
+   terminator, and the actual name length is returned in *buf_size.  If the
+   name of the vgroup is longer than *buf_size-1, the string will be truncated
+   and the null terminator is stored in the last position of the buffer.
+   buf_size must not be NULL.
 
 RETURNS
-    The length of the vgroup name / FAIL on failure
+   SUCCEED / FAIL
 
 *******************************************************************************/
-ptrdiff_t
-Vinquire(int32  vkey,     /* IN: vgroup key */
-         int32 *nentries, /* OUT: number of entries in vgroup */
-         size_t buf_size, /* IN: size of vgname buffer */
-         char  *vgname /* OUT: vgroup name */)
+int
+Vinquire(int32   vkey,     /* IN: vgroup key */
+         int32  *nentries, /* OUT: number of entries in vgroup */
+         char   *vgname,   /* OUT: vgroup name */
+         size_t *buf_size /* IN/OUT: vgname buffer size */)
 {
-    VGROUP   *vg        = NULL;
-    size_t    name_len  = 0;
-    ptrdiff_t ret_value = SUCCEED;
+    VGROUP *vg        = NULL;
+    size_t  name_len  = 0;
+    int     ret_value = SUCCEED;
 
     /* Clear error stack */
     HEclear();
 
     /* Check argument */
-    if (HAatom_group(vkey) != VGIDGROUP)
+    if (HAatom_group(vkey) != VGIDGROUP || buf_size == NULL)
         HGOTO_ERROR(DFE_ARGS, FAIL);
 
     /* Get the vgroup struct for access */
@@ -2703,19 +2711,22 @@ Vinquire(int32  vkey,     /* IN: vgroup key */
     /* Get the length of the vgroup name */
     name_len = (vg->vgname != NULL) ? strlen(vg->vgname) : 0;
 
-    /* If vgname is NULL or buf_size is 0, return the length of the name */
-    if (vgname == NULL || buf_size == 0)
-        HGOTO_DONE((ptrdiff_t)name_len);
+    /* If vgname is NULL or *buf_size is 0, return the length of the name */
+    if (vgname == NULL || *buf_size == 0) {
+        *buf_size = name_len;
+        HGOTO_DONE(ret_value);
+    }
 
     /* Copy vgroup name, truncating if necessary */
     if (vg->vgname != NULL) {
-        strncpy(vgname, vg->vgname, buf_size - 1);
-        vgname[buf_size - 1] = '\0';
+        strncpy(vgname, vg->vgname, *buf_size - 1);
+        vgname[*buf_size - 1] = '\0';
     }
     else
         vgname[0] = '\0';
 
-    ret_value = (ptrdiff_t)name_len;
+    /* Return the actual name length */
+    *buf_size = name_len;
 
 done:
     return ret_value;
@@ -2734,6 +2745,8 @@ DESCRIPTION
    This routine opens the HDF file and initializes it for Vset operations.
 
    See also Vclose().
+
+   By: Jason Ng 10 Aug 92
 
 RETURNS
     RETURN VALUE:
@@ -2941,8 +2954,7 @@ VPshutdown(void)
     }
 
     if (Vgbuf != NULL) {
-        free(Vgbuf);
-        Vgbuf     = NULL;
+        HDfreenclear(Vgbuf);
         Vgbufsize = 0;
     }
 
@@ -3087,10 +3099,9 @@ Vgetvgroups(int32    id,       /* IN: file id or vgroup id */
             uint16  *refarray /* IN/OUT: ref array to fill */)
 {
     vginstance_t *vg_inst = NULL;
-    VGROUP       *vg      = NULL;
     int32         vg_ref;
-    unsigned      nactual_vgs, user_vgs;
-    int           ii;
+    int           nactual_vgs, user_vgs, ii;
+    VGROUP       *vg        = NULL;
     int           ret_value = SUCCEED;
 
     /* Clear error stack */
@@ -3227,7 +3238,7 @@ Vgetvgroups(int32    id,       /* IN: file id or vgroup id */
            number of user-created vgroups, otherwise, return the number of
            vgroups that are actually stored in refarray */
         if (refarray == NULL)
-            ret_value = (int)(user_vgs - start_vg);
+            ret_value = user_vgs - (int)start_vg;
         else
             ret_value = nactual_vgs;
     } /* vgroup id is given */
@@ -3238,3 +3249,4 @@ Vgetvgroups(int32    id,       /* IN: file id or vgroup id */
 done:
     return ret_value;
 } /* Vgetvgroups */
+

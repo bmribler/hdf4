@@ -16,6 +16,7 @@
 
 #include "hdf.h"
 #include "mfhdf.h"
+#include "vg_priv.h"
 #include "hrepack.h"
 #include "hrepack_utils.h"
 #include "hrepack_parse.h"
@@ -26,7 +27,6 @@
 #include "hrepack_an.h"
 #include "hrepack_vg.h"
 #include "hrepack_dim.h"
-#include "vg_priv.h"
 
 int list_vg(int32 infile_id, int32 outfile_id, int32 sd_id, int32 sd_out, int32 gr_id, int32 gr_out,
             list_table_t *list_tbl, dim_table_t *td1, dim_table_t *td2, options_t *options);
@@ -246,7 +246,6 @@ list_main(const char *infname, const char *outfname, options_t *options)
             printf("Failed to close file <%s>\n", outfname);
         if (Hclose(outfile_id) == FAIL)
             printf("Failed to close file <%s>\n", outfname);
-        infile_id = FAIL;
     }
 
     /*-------------------------------------------------------------------------
@@ -287,6 +286,7 @@ out:
     if (infile_id != FAIL) {
         if (Hclose(infile_id) == FAIL)
             printf("Failed to close file <%s>\n", infname);
+        infile_id = FAIL;
     }
     if (outfile_id != FAIL) {
         if (Hclose(outfile_id) == FAIL)
@@ -363,8 +363,8 @@ list_vg(int32 infile_id, int32 outfile_id, int32 sd_id, int32 sd_out, int32 gr_i
          * iterate through each lone vgroup.
          */
         for (i = 0; i < nlones; i++) {
-            int32  ref = ref_array[i];
-            size_t name_len;
+
+            int32 ref = ref_array[i];
 
             /*
              * attach to the current vgroup then get its
@@ -379,7 +379,7 @@ list_vg(int32 infile_id, int32 outfile_id, int32 sd_id, int32 sd_out, int32 gr_i
             /* Get vgroup's name */
             vg_name = vgetvgname(vg_id);
             if (!vg_name) {
-                printf("Error: Could not get name length for group with ref <%d>\n", ref);
+                printf("Error: Could not get name for group with ref <%d>\n", ref);
                 goto out;
             }
 
@@ -550,7 +550,6 @@ vgroup_insert(int32 infile_id, int32 outfile_id, int32 sd_id, /* SD interface id
     char  *vg_name       = NULL;
     char  *vg_class      = NULL;
     char  *path          = NULL;
-    size_t name_len;
     int    visited;
     int32  tag;
     int32  ref;
@@ -752,6 +751,8 @@ vgroup_insert(int32 infile_id, int32 outfile_id, int32 sd_id, /* SD interface id
         HDfreenclear(vg_name);
         HDfreenclear(vg_class);
     } /* i */
+    free(vg_class);
+    free(vg_name);
 
     return SUCCEED;
 

@@ -102,15 +102,16 @@ test_vglongnames(void)
     VERIFY(is_internal, FALSE, "Vgisinternal");
 
     /* Get the vgroup's name */
-    buf_size = Vgetname(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetname");
+    status = Vgetname(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetname");
     VERIFY(buf_size, strlen(VG_LONGNAME), "Vgetname");
 
     vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgname, "vgname", "test_vglongnames");
 
-    buf_size = Vgetname(vg1, buf_size + 1, vgname);
-    CHECK(buf_size, FAIL, "Vgetname:vg1");
+    buf_size++;
+    status = Vgetname(vg1, vgname, &buf_size);
+    CHECK(status, FAIL, "Vgetname:vg1");
     VERIFY(buf_size, strlen(VG_LONGNAME), "Vgetname");
     VERIFY_CHAR(vgname, VG_LONGNAME, "Vgetname");
 
@@ -118,15 +119,16 @@ test_vglongnames(void)
     vgname = NULL;
 
     /* Get the vgroup's class */
-    buf_size = Vgetclass(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetclass");
+    status = Vgetclass(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetclass");
     VERIFY(buf_size, strlen(VG_LONGCLASS), "Vgetclass");
 
     vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgclass, "vgclass", "test_vglongnames");
 
-    buf_size = Vgetclass(vg1, buf_size + 1, vgclass);
-    CHECK(buf_size, FAIL, "Vgetclass:vg1");
+    buf_size++;
+    status = Vgetclass(vg1, vgclass, &buf_size);
+    CHECK(status, FAIL, "Vgetclass:vg1");
     VERIFY(buf_size, strlen(VG_LONGCLASS), "Vgetclass");
     VERIFY_CHAR(vgclass, VG_LONGCLASS, "Vgetclass");
 
@@ -145,28 +147,30 @@ test_vglongnames(void)
     CHECK(vg1, FAIL, "VSattach");
 
     /* Get the vgroup's name */
-    buf_size = Vgetname(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetname");
+    status = Vgetname(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetname");
     VERIFY(buf_size, strlen(VGROUP1), "Vgetname");
 
     vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgname, "vgname", "test_vglongnames");
 
-    buf_size = Vgetname(vg1, buf_size + 1, vgname);
-    CHECK(buf_size, FAIL, "Vgetname:vg1");
+    buf_size++;
+    status = Vgetname(vg1, vgname, &buf_size);
+    CHECK(status, FAIL, "Vgetname:vg1");
     VERIFY(buf_size, strlen(VGROUP1), "Vgetname");
     VERIFY_CHAR(vgname, VGROUP1, "Vgetname");
 
     /* Should have the same class */
-    buf_size = Vgetclass(vg1, 0, NULL);
-    CHECK(buf_size, FAIL, "Vgetclass");
+    status = Vgetclass(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetclass");
     VERIFY(buf_size, strlen(VG_LONGCLASS), "Vgetclass");
 
     vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
     CHECK_ALLOC(vgclass, "vgclass", "test_vglongnames");
 
-    buf_size = Vgetclass(vg1, buf_size + 1, vgclass);
-    CHECK(buf_size, FAIL, "Vgetclass:vg1");
+    buf_size++;
+    status = Vgetclass(vg1, vgclass, &buf_size);
+    CHECK(status, FAIL, "Vgetclass:vg1");
     VERIFY(buf_size, strlen(VG_LONGCLASS), "Vgetclass");
     VERIFY_CHAR(vgclass, VG_LONGCLASS, "Vgetclass");
 
@@ -206,13 +210,12 @@ done:
 static void
 test_undefined(void)
 {
-    int32     status;         /* Status values from routines */
-    int32     file_id = FAIL; /* File ID */
-    int32     vg1     = FAIL; /* Vdata ID */
-    int32     ref;            /* Vdata ref */
-    int       is_internal;    /* to test Vgisinternal */
-    ptrdiff_t name_len;       /* Length of a vgroup's name or class name (portable ssize_t substitute) */
-    char     *vgname = NULL, *vgclass = NULL;
+    int32  status;         /* Status values from routines */
+    int32  file_id = FAIL; /* File ID */
+    int32  vg1     = FAIL; /* Vdata ID */
+    int32  ref;            /* Vdata ref */
+    int    is_internal;    /* to test Vgisinternal */
+    size_t buf_size = 0;   /* Size for name or class buffer */
 
     /* Open the HDF file. */
     file_id = Hopen(NONAMECLASS, DFACC_CREATE, 0);
@@ -272,9 +275,9 @@ test_undefined(void)
     VERIFY(is_internal, FALSE, "Vgisinternal");
 
     /* Test Vgetclass on vgroup with no class */
-    name_len = Vgetclass(vg1, 0, NULL);
-    CHECK(name_len, FAIL, "Vgetclass");
-    VERIFY(name_len, 0, "VSgetclass");
+    status = Vgetclass(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetclass");
+    VERIFY(buf_size, 0, "VSgetclass");
 
     status = Vdetach(vg1);
     CHECK(status, FAIL, "Vdetach");
@@ -288,9 +291,9 @@ test_undefined(void)
     CHECK(vg1, FAIL, "VSattach");
 
     /* Test Vgetname on vgroup with no name */
-    name_len = Vgetname(vg1, 0, NULL);
-    CHECK(name_len, FAIL, "Vgetname");
-    VERIFY(name_len, 0, "Vgetname");
+    status = Vgetname(vg1, NULL, &buf_size);
+    CHECK(status, FAIL, "Vgetname");
+    VERIFY(buf_size, 0, "Vgetname");
 
     status = Vdetach(vg1);
     CHECK(status, FAIL, "Vdetach");

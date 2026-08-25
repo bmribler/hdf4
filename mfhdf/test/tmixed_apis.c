@@ -267,7 +267,6 @@ test_vdatavgroups()
     char8       att2_values[]  = "Seconds";
     uint16     *refarray       = NULL;
     int         ii, status;
-    size_t      buf_size          = 0;
     char       *vg_name           = NULL, vd_name[10];
     const char *check_vg_names[3] = {"Vgroup_1", "Vgroup_2", "Vgroup_3"};
     const char *check_vd_names[1] = {"Vdata_1"};

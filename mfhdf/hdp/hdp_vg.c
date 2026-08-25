@@ -226,11 +226,11 @@ int32
 Vstr_ref(int32 file_id, char *searched_str,          /* vg's class name */
          int is_name, int32 *find_ref, int32 *index) /* index of the vgroup w/ref# *find_ref */
 {
-    int32     vg_id     = FAIL;
-    char     *name      = NULL;
-    ptrdiff_t name_len  = 0; /* portable substitute for POSIX ssize_t */
-    int32     status_32 = FAIL;
-    int32     ret_value = FAIL;
+    int32   vg_id     = FAIL;
+    char   *name      = NULL;
+    ssize_t name_len  = 0;
+    int32   status_32 = FAIL;
+    int32   ret_value = FAIL;
 
     /* starting from the ref# *find_ref, search for the vgroup having a
        name or class the same as the given string searched_name; when no
@@ -257,7 +257,8 @@ Vstr_ref(int32 file_id, char *searched_str,          /* vg's class name */
         }
 
         if (FAIL == Vdetach(vg_id))
-            ERROR_GOTO_2("in %s: Vdetach failed for vgroup with ref#(%d)", "Vstr_ref", (int)*find_ref);
+            ERROR_GOTO_2("in %s: Vdetach failed for vgroup with ref#(%d)", "Vstr_ref",
+                         (int)*find_ref);
         vg_id = FAIL;
 
         /* if the vg's name or vg's class is the given string, return the
@@ -269,10 +270,10 @@ Vstr_ref(int32 file_id, char *searched_str,          /* vg's class name */
             (*index)++;
             goto done;
         }
-        (*index)++;
+            (*index)++;
 
         SAFE_FREE(name); /* free name and set it to NULL */
-    }                    /* end while getting vgroups */
+    }   /* end while getting vgroups */
 
     /* when Vgetid returned FAIL in while above, search should stop */
     ret_value = FAIL;
@@ -409,9 +410,8 @@ int
 get_VGandInfo(int32 *vg_id, int32 file_id, int32 vg_ref, const char *file_name, int32 *n_entries,
               char **vgname, char **vgclass)
 {
-    int       status, ret_value = SUCCEED;
-    int32     status_32;
-    ptrdiff_t name_len = 0;
+    int    status, ret_value = SUCCEED;
+    size_t buf_size = 0;
 
     /* detach the current vgroup if it's attached to cover the case
       where a library routine fails and must continue to the next vgroup
@@ -423,18 +423,19 @@ get_VGandInfo(int32 *vg_id, int32 file_id, int32 vg_ref, const char *file_name, 
         ERROR_GOTO_2("in %s: Vattach failed for vgroup ref=%d", "get_VGandInfo", (int)vg_ref);
 
     /* get the length of the vgname to allocate enough space */
-    name_len = Vgetname(*vg_id, 0, NULL);
-    if (name_len == FAIL) /* go to done and return a FAIL */
+    status = Vgetname(*vg_id, NULL, &buf_size);
+    if (status == FAIL) /* go to done and return a FAIL */
     {
         ERROR_GOTO_2("in %s: Vgetname failed for vg ref=%d", "get_VGandInfo", (int)vg_ref);
     }
-    if (name_len > 0) {
-        *vgname = (char *)malloc(sizeof(char) * (name_len + 1));
+    if (buf_size > 0) {
+        *vgname = (char *)malloc(sizeof(char) * (buf_size + 1));
 
         /* If allocation fails, get_VGandInfo simply terminates hdp. */
         CHECK_ALLOC(*vgname, "*vgname", "get_VGandInfo");
 
-        status = Vinquire(*vg_id, n_entries, name_len + 1, *vgname);
+        buf_size++;
+        status = Vinquire(*vg_id, n_entries, *vgname, &buf_size);
         if (FAIL == status) /* go to done and return a FAIL */
         {
             *n_entries = -1;
@@ -444,7 +445,7 @@ get_VGandInfo(int32 *vg_id, int32 file_id, int32 vg_ref, const char *file_name, 
     else {
         *vgname = (char *)malloc(sizeof(char) * (NONAME_LEN));
         strcpy(*vgname, "<Undefined>");
-        status = Vinquire(*vg_id, n_entries, 0, NULL);
+        status = Vinquire(*vg_id, n_entries, NULL, &buf_size);
         if (FAIL == status) /* go to done and return a FAIL */
         {
             *n_entries = -1;
@@ -453,19 +454,20 @@ get_VGandInfo(int32 *vg_id, int32 file_id, int32 vg_ref, const char *file_name, 
     }
 
     /* get the length of the vgclass to allocate enough space */
-    name_len = Vgetclass(*vg_id, 0, NULL);
-    if (name_len == FAIL) /* go to done and return a FAIL */
+    status = Vgetclass(*vg_id, NULL, &buf_size);
+    if (status == FAIL) /* go to done and return a FAIL */
     {
         ERROR_GOTO_2("in %s: Vgetclass failed for vg ref=%d", "get_VGandInfo", (int)vg_ref);
     }
-    if (name_len > 0) {
-        *vgclass = (char *)malloc(sizeof(char) * (name_len + 1));
+    if (buf_size > 0) {
+        *vgclass = (char *)malloc(sizeof(char) * (buf_size + 1));
 
         /* If allocation fails, get_VGandInfo simply terminates hdp. */
         CHECK_ALLOC(*vgclass, "*vgclass", "get_VGandInfo");
 
-        name_len = Vgetclass(*vg_id, name_len + 1, *vgclass);
-        if (name_len == FAIL) /* go to done and return a FAIL */
+        buf_size++;
+        status = Vgetclass(*vg_id, *vgclass, &buf_size);
+        if (status == FAIL) /* go to done and return a FAIL */
         {
             ERROR_GOTO_2("in %s: Vgetclass failed for vgroup ref#=%d", "get_VGandInfo", (int)vg_ref);
         }
@@ -477,11 +479,8 @@ get_VGandInfo(int32 *vg_id, int32 file_id, int32 vg_ref, const char *file_name, 
 
 done:
     if (ret_value == FAIL) {
-        free(*vgname); /* free temp memory */
-        *vgname = NULL;
-
-        free(*vgclass); /* free temp memory */
-        *vgclass = NULL;
+        HDfreenclear(*vgname); /* free temp memory */
+        HDfreenclear(*vgclass); /* free temp memory */
     }
 
     return (ret_value);
@@ -1312,7 +1311,7 @@ dvg(dump_info_t *dumpvg_opts, int curr_arg, int argc, char *argv[])
             status = get_VGandInfo(&vg_id, file_id, vg_ref, file_name, &n_entries, &vgname, &vgclass);
             if (status == FAIL)
                 ERROR_NOTIFY_2("in dvg: %s failed in getting vgroup with ref#=%d", "get_VGandInfo",
-                               (int)vg_ref);
+                             (int)vg_ref);
 
             /* since the succeeding processing depends heavily on these
                we decided to just skip the current file */

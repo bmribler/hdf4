@@ -1171,7 +1171,6 @@ hdf_read_dims(XDR *xdrs, NC *handle, int32 vg)
     NC_dim **dimension = NULL;
     int32    dimvg     = -1;
     int32    vs        = -1;
-    int32    entries;
     int      ret_value = SUCCEED;
 
     (void)xdrs;
@@ -1612,7 +1611,7 @@ hdf_read_vars(XDR *xdrs, NC *handle, int32 vg)
                 is_rec_var = FALSE;
 
                 /* Get the number of entries in the variable vgroup */
-                if (Vinquire(varvg, &entries, 0, NULL) == FAIL)
+                if (Vinquire(varvg, &entries, NULL, &buf_size) == FAIL)
                     HGOTO_FAIL(FAIL);
 
                 /*
@@ -2102,6 +2101,7 @@ hdf_cdf_clobber(NC *handle)
     if (FAIL == Vdetach(vg)) {
         HGOTO_FAIL(FAIL);
     }
+    vg = FAIL;
 
     status = Vdelete(handle->hdf_file, (int32)handle->vgid);
     if (FAIL == status) {
@@ -2113,6 +2113,7 @@ hdf_cdf_clobber(NC *handle)
 done:
     if (vg != FAIL)
         Vdetach(vg);
+
     return ret_value;
 } /* hdf_cdf_clobber */
 
